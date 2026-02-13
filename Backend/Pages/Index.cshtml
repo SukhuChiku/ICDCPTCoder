@@ -1,0 +1,27 @@
+@page
+@{
+    ViewData["Title"] = "Home";
+}
+
+<div class="card">
+    <div class="card-header">
+        <h2>Welcome to ICD CPT Coder</h2>
+    </div>
+    <p>Manage patient visits and doctor notes with ease.</p>
+    <div class="row mt-20">
+        <div class="col">
+            <div class="card">
+                <h3>Patient Visits and  ICD CPT generator</h3>
+                <p>View all visits for a specific patient, generate ICD/CPT Codes</p>
+                <a href="/PatientVisits" class="btn btn-primary">View Visits</a>
+            </div>
+        </div>
+        <div class="col">
+            <div class="card">
+                <h3>Add Doctor's Note</h3>
+                <p>Add or update doctor's notes for patient visits.</p>
+                <a href="/DoctorsNote" class="btn btn-primary">Add Note</a>
+            </div>
+        </div>
+    </div>
+</div>

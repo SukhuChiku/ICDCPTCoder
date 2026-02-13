@@ -1,0 +1,119 @@
+@page
+@using System.Web
+@{
+    ViewData["Title"] = "Patient Visits";
+}
+
+<div class="card">
+    <div class="card-header">
+        <h2>Patient Visits</h2>
+    </div>
+
+    <div style="margin-bottom: 20px;">
+        <label for="patientId">Enter Patient ID:</label>
+        <div style="display: flex; gap: 10px;">
+            <input type="number" id="patientId" placeholder="Try 3001" class="italic-placeholder" style="flex: 1;" />
+            <button onclick="loadVisits()" style="flex: 0 0 auto;">Get Visits</button>
+        </div>
+    </div>
+
+    <div id="results"></div>
+</div>
+
+<script>
+async function generateOpenAPICptICDCode(button, encodedNote) {
+    const note = decodeURIComponent(encodedNote);
+
+    // Loading state
+    button.disabled = true;
+    button.innerText = "Generating...";
+
+    const res = await fetch('/api/CptIcdGenerator', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ text: note })
+    });
+
+    if (!res.ok) {
+        button.innerText = "Failed";
+        return;
+    }
+
+    const data = await res.json();
+
+    const td = button.parentElement;
+
+    const cptHtml = data.cptCodes?.length
+        ? `<strong>CPT:</strong><ul>${data.cptCodes
+              .map(c => `<li>${c.code} – ${c.description}</li>`)
+              .join("")}</ul>`
+        : "<strong>CPT:</strong> None";
+
+    const icdHtml = data.icdCodes?.length
+        ? `<strong>ICD-10:</strong><ul>${data.icdCodes
+              .map(i => `<li>${i.code} – ${i.description}</li>`)
+              .join("")}</ul>`
+        : "<strong>ICD-10:</strong> None";
+
+    // Replace button with results
+    td.innerHTML = `
+        <div class="ai-codes">
+            ${cptHtml}
+            ${icdHtml}
+        </div>
+    `;
+}
+
+
+async function loadVisits() {
+    const patientId = document.getElementById("patientId").value;
+    if(patientId.trim() === "")
+    {
+        alert("Please enter a valid Patient ID");
+        return;
+    }
+
+    const resultsDiv = document.getElementById("results");
+
+    const response = await fetch(`/api/PatientVisits?patientId=${patientId}`);
+    const visits = await response.json();
+
+    if (!Array.isArray(visits) || visits.length === 0) {
+        resultsDiv.innerHTML = "<p>No visits found</p>";
+        return;
+    }
+
+    let html = `
+        <table>
+            <thead>
+                <tr>
+                    <th>Visit ID</th>
+                    <th>Visit Date</th>
+                    <th>Doctor's Note</th>
+                    <th>CPT/ICD10</th>
+                </tr>
+            </thead>
+            <tbody>
+    `;
+
+    visits.forEach(v => {
+        html += `
+        <tr>
+            <td>${v.visitID}</td>
+            <td>${new Date(v.visitDate).toLocaleDateString()}</td>
+            <td>${v.doctorsNote}</td>
+            <td>
+                <button
+                    onclick="generateOpenAPICptICDCode(this, '${encodeURIComponent(v.doctorsNote)}')">
+                    Generate AI assisted CPT/ICD
+                </button>
+            </td>
+        </tr>
+        `;
+    });
+
+    html += "</tbody></table>";
+    resultsDiv.innerHTML = html;
+    
+}
+</script>

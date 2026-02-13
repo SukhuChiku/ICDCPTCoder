@@ -1,0 +1,69 @@
+# Sensitive config
+appsettings.json
+appsettings.Development.json
+appsettings.*.json
+.env
+.env.local
+
+# Build output
+bin/
+obj/
+[Bb]in/
+[Oo]bj/
+
+# User-specific files
+*.user
+*.suo
+.vs/
+
+# Docker files
+docker-compose.override.yml
+docker-compose.local.yml
+
+# Logs
+*.log
+
+# OS files
+.DS_Store
+
+# Database
+*.sql
+*.dump# Sensitive config - matches anywhere in the project
+appsettings.json
+appsettings.Development.json
+appsettings.*.json
+*.env
+.env
+.env.local
+
+# Build output - matches in ANY directory
+bin/
+obj/
+[Bb]in/
+[Oo]bj/
+
+# User-specific files
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+.vs/
+
+# Docker files
+docker-compose.override.yml
+docker-compose.local.yml
+
+# Logs
+*.log
+logs/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Database dumps
+*.sql
+*.dump
+
+# Zip files
+*.zip

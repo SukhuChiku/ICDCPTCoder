@@ -1,0 +1,63 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:18.1
+    container_name: ICDCPTCoderDB
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: PatientVisits
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+  presidio-analyzer:
+    image: mcr.microsoft.com/presidio-analyzer:latest
+    container_name: presidio_analyzer
+    ports:
+      - "5001:5001"
+    environment:
+      - PORT=5001
+    restart: unless-stopped
+
+  presidio-anonymizer:
+    image: mcr.microsoft.com/presidio-anonymizer:latest
+    container_name: presidio_anonymizer
+    ports:
+      - "5002:5002"
+    environment:
+      - PORT=5002
+    restart: unless-stopped
+
+  dotnet-api:
+    image: sukhuchiku/icdcptcoder:latest 
+    container_name: icdcptcoder
+    ports:
+      - "127.0.0.1:5000:8080"
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Production
+      - "ASPNETCORE_URLS=http://+:8080"
+      - "ConnectionStrings__DefaultConnection=Host=postgres;Port=5432;Database=PatientVisits;Username=postgres;Password=${POSTGRES_PASSWORD}"
+      - "PRESIDIO_ANALYZER_URL=http://presidio-analyzer:5001"
+      - "PRESIDIO_ANONYMIZER_URL=http://presidio-anonymizer:5002"
+      - "OPENAI_API_KEY=${OPENAI_API_KEY}"
+
+    depends_on:
+      postgres:
+        condition: service_healthy
+      presidio-analyzer:
+        condition: service_started
+      presidio-anonymizer:
+        condition: service_started
+    restart: unless-stopped
+
+volumes:
+  postgres_data:

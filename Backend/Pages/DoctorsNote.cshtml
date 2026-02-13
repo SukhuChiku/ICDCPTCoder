@@ -1,0 +1,91 @@
+@page
+@{
+    ViewData["Title"] = "Add Doctor's Note";
+}
+
+<div class="card">
+    <div class="card-header">
+        <h1 style="color: red;">Admin accessible only</h1>
+        <h2>Add Doctor's Note</h2>
+    </div>
+
+    <form id="AddNoteForm">
+        <div>
+            <label for="patientId">Patient ID</label>
+            <input disabled type="number" id="patientId" placeholder="Enter Patient ID" required />
+        </div>
+
+        <div>
+            <label for="visitId">Visit ID</label>
+            <input disabled type="number" id="visitId" placeholder="Enter Visit ID" required />
+        </div>
+
+        <div>
+            <label for="visitDate">Visit Date</label>
+            <input disabled type="date" id="visitDate" required />
+        </div>
+
+        <div>
+            <label for="doctorsNote">Doctor's Note</label>
+            <textarea disabled id="doctorsNote"
+                      placeholder="Enter Doctor's Note"
+                      rows="6"></textarea>
+        </div>
+
+        <button disabled type="button" onclick="submitNote(false)">Add Note</button>
+    </form>
+</div>
+
+<script>
+document.getElementById('visitDate').max =
+    new Date().toISOString().split('T')[0];
+
+async function submitNote(forceUpdate) {
+
+    const form = document.getElementById('AddNoteForm');
+
+    const patientIdVal = patientId.value;
+    const visitIdVal = visitId.value;
+    const visitDateVal = visitDate.value;
+    const noteVal = doctorsNote.value;
+
+    if (!patientIdVal || !visitIdVal || !visitDateVal || !noteVal) {
+        alert("Please enter ALL values");
+        return;
+    }
+
+    const data = {
+        patientId: parseInt(patientIdVal),
+        visitId: parseInt(visitIdVal),
+        visitDate: new Date(visitDateVal),
+        doctorsNote: noteVal,
+        forceUpdate: forceUpdate
+    };
+
+    const res = await fetch('/api/AddDoctorsNote', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data)
+    });
+
+    if (res.status === 409) {
+        if (confirm("Note already exists. Update it?")) {
+            submitNote(true);
+        }
+        return;
+    }
+
+    if (!res.ok) {
+        const text = await res.text();
+        console.error("API Error:", text);
+        alert("Server error occurred. Check console.");
+        return;
+    }
+
+    const result = await res.json();
+    alert(result.message);
+
+    // Reset form ONLY after success
+    form.reset();
+}
+</script>
